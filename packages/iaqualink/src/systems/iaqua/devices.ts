@@ -93,6 +93,14 @@ export class IaquaColorLight extends IaquaDimmableLight {
   }
 }
 
+/** Convert "aux_1" → "Aux 1", "pool_temp" → "Pool Temp" */
+function humanizeName(name: string): string {
+  return name
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
 // --- Device name patterns for factory ---
 
 const TEMP_SENSORS = new Set(["pool_temp", "spa_temp", "air_temp"]);
@@ -106,6 +114,21 @@ const PUMPS_AND_HEATERS = new Set([
 ]);
 
 /**
+ * Flatten an array of single-key objects into one object.
+ * devices_screen returns attributes like: [{"state":"0"},{"label":"Pool Light"},...]
+ * This merges them into: {"state":"0","label":"Pool Light",...}
+ */
+function flattenAttrs(arr: unknown[]): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+  for (const item of arr) {
+    if (typeof item === "object" && item !== null) {
+      Object.assign(result, item);
+    }
+  }
+  return result;
+}
+
+/**
  * Parse a single entry from an iAqua API response and add/update
  * the corresponding device in the system's device map.
  */
@@ -114,11 +137,21 @@ export function parseIaquaDevices(
   system: AqualinkSystem,
 ): void {
   // Each entry in the response is an object with a single key (the device name)
-  // whose value is the device data.
+  // whose value is either a flat object (home_screen) or an array of
+  // single-key objects (devices_screen).
   for (const [name, rawValue] of Object.entries(entry)) {
+    // home_screen may include simple string state values like { "aux_5": "1" }
+    if (typeof rawValue === "string") {
+      const existing = system.devices.get(name);
+      if (existing) existing.updateData({ state: rawValue });
+      continue;
+    }
     if (typeof rawValue !== "object" || rawValue === null) continue;
-    const deviceData = rawValue as Record<string, unknown>;
-    const label = String(deviceData["label"] ?? name);
+    const deviceData = Array.isArray(rawValue)
+      ? flattenAttrs(rawValue)
+      : (rawValue as Record<string, unknown>);
+    const hasCustomLabel = Boolean(deviceData["label"]);
+    const label = String(deviceData["label"] ?? humanizeName(name));
 
     // Update existing device or create new one
     const existing = system.devices.get(name);
@@ -131,17 +164,17 @@ export function parseIaquaDevices(
     if (TEMP_SENSORS.has(name)) {
       system.devices.set(
         name,
-        new IaquaSensor(name, label, deviceData, system),
+        new IaquaSensor(name, label, deviceData, system, hasCustomLabel),
       );
     } else if (THERMOSTATS.has(name)) {
       system.devices.set(
         name,
-        new IaquaThermostat(name, label, deviceData, system),
+        new IaquaThermostat(name, label, deviceData, system, hasCustomLabel),
       );
     } else if (PUMPS_AND_HEATERS.has(name)) {
       system.devices.set(
         name,
-        new IaquaSwitch(name, label, deviceData, system),
+        new IaquaSwitch(name, label, deviceData, system, hasCustomLabel),
       );
     } else if (name.startsWith("aux_")) {
       // Determine if this aux is a light based on device data
@@ -151,22 +184,22 @@ export function parseIaquaDevices(
       if (subtype.includes("color") || type.includes("color")) {
         system.devices.set(
           name,
-          new IaquaColorLight(name, label, deviceData, system),
+          new IaquaColorLight(name, label, deviceData, system, hasCustomLabel),
         );
       } else if (subtype.includes("dimmer") || type.includes("dimmer")) {
         system.devices.set(
           name,
-          new IaquaDimmableLight(name, label, deviceData, system),
+          new IaquaDimmableLight(name, label, deviceData, system, hasCustomLabel),
         );
       } else if (subtype.includes("light") || type.includes("light")) {
         system.devices.set(
           name,
-          new IaquaLightSwitch(name, label, deviceData, system),
+          new IaquaLightSwitch(name, label, deviceData, system, hasCustomLabel),
         );
       } else {
         system.devices.set(
           name,
-          new IaquaSwitch(name, label, deviceData, system),
+          new IaquaSwitch(name, label, deviceData, system, hasCustomLabel),
         );
       }
     }

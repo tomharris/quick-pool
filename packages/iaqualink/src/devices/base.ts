@@ -1,12 +1,18 @@
 import type { AqualinkSystem } from "../system.ts";
 
 export abstract class AqualinkDevice {
+  /** True when the API provided an explicit label (i.e. device is configured). */
+  hasCustomLabel: boolean;
+
   constructor(
     public readonly name: string,
-    public readonly label: string,
+    public label: string,
     protected data: Record<string, unknown>,
     protected readonly system: AqualinkSystem,
-  ) {}
+    hasCustomLabel = false,
+  ) {
+    this.hasCustomLabel = hasCustomLabel;
+  }
 
   get state(): string {
     return String(this.data["state"] ?? "unknown");
@@ -15,6 +21,10 @@ export abstract class AqualinkDevice {
   /** Merge new data from an API response into this device. */
   updateData(newData: Record<string, unknown>): void {
     this.data = { ...this.data, ...newData };
+    if (newData["label"]) {
+      this.label = String(newData["label"]);
+      this.hasCustomLabel = true;
+    }
   }
 }
 

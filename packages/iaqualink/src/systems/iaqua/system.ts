@@ -16,10 +16,12 @@ export class IaquaSystem extends AqualinkSystem {
 
   protected async fetchDevices(): Promise<void> {
     const homeRaw = (await this.sendCommand("get_home")) as IaquaHomeWrappedResponse;
-    this.parseHomeResponse(homeRaw.home_screen ?? []);
-
     const devicesRaw = (await this.sendCommand("get_devices")) as IaquaDevicesWrappedResponse;
+
+    // Parse devices_screen first (device config: labels, types, subtypes),
+    // then home_screen (live state) so fresh state overwrites stale values.
     this.parseDevicesResponse(devicesRaw.devices_screen ?? []);
+    this.parseHomeResponse(homeRaw.home_screen ?? []);
   }
 
   async sendCommand(

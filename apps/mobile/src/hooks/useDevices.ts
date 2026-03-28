@@ -54,6 +54,9 @@ export function useGroupedDevices() {
   const lights: AqualinkDevice[] = [];
 
   for (const device of devices) {
+    // Hide unconfigured aux devices (no label set in iAqualink controller)
+    if (device.name.startsWith("aux_") && !device.hasCustomLabel) continue;
+
     if (device instanceof AqualinkThermostat) {
       thermostats.push(device);
     } else if (device instanceof AqualinkLight) {

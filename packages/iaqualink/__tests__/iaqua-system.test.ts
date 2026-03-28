@@ -17,17 +17,22 @@ const MOCK_HOME_RESPONSE = {
     { spa_pump: { name: "spa_pump", label: "Spa Pump", state: "0" } },
     { pool_set_point: { name: "pool_set_point", label: "Pool Heat", state: "1", set_point: "82" } },
     { spa_set_point: { name: "spa_set_point", label: "Spa Heat", state: "0", set_point: "100" } },
+    // home_screen aux entries: simple string state values (live state)
+    { aux_1: "0" },
+    { aux_2: "1" },
+    { aux_3: "0" },
   ],
 };
 
+// devices_screen uses array-of-objects format per device (real API structure)
 const MOCK_DEVICES_RESPONSE = {
   devices_screen: [
     { status: "Online" },                           // index 0
-    {},                                              // index 1
-    {},                                              // index 2
-    { aux_1: { name: "aux_1", label: "Pool Light", state: "0", type: "light", subtype: "color" } },
-    { aux_2: { name: "aux_2", label: "Spa Light", state: "1", type: "light", subtype: "" } },
-    { aux_3: { name: "aux_3", label: "Waterfall", state: "0", type: "", subtype: "" } },
+    { response: "" },                               // index 1
+    { group: "1" },                                 // index 2
+    { aux_1: [{ state: "0" }, { label: "Pool Light" }, { type: "light" }, { subtype: "color" }] },
+    { aux_2: [{ state: "1" }, { label: "Spa Light" }, { type: "light" }, { subtype: "" }] },
+    { aux_3: [{ state: "0" }, { label: "Waterfall" }, { type: "" }, { subtype: "" }] },
   ],
 };
 
@@ -141,19 +146,22 @@ describe("IaquaSystem", () => {
 
     await system.update();
 
-    // aux_1 should be a color light
+    // aux_1 should be a color light with custom label
     const poolLight = system.devices.get("aux_1");
     expect(poolLight).toBeDefined();
     expect(poolLight!.label).toBe("Pool Light");
+    expect(poolLight!.hasCustomLabel).toBe(true);
 
-    // aux_2 should be a light switch
+    // aux_2 should be a light switch with custom label
     const spaLight = system.devices.get("aux_2");
     expect(spaLight).toBeDefined();
+    expect(spaLight!.hasCustomLabel).toBe(true);
 
-    // aux_3 should be a plain switch (no light type)
+    // aux_3 should be a plain switch (no light type) with custom label
     const waterfall = system.devices.get("aux_3");
     expect(waterfall).toBeDefined();
     expect(waterfall!.label).toBe("Waterfall");
+    expect(waterfall!.hasCustomLabel).toBe(true);
   });
 
   test("sends commands with correct URL params", async () => {
@@ -173,6 +181,101 @@ describe("IaquaSystem", () => {
     expect(parsed.searchParams.get("serial")).toBe("POOL001");
     expect(parsed.searchParams.get("sessionID")).toBe("session456");
     expect(parsed.searchParams.get("aux_1")).toBe("1");
+  });
+
+  test("home_screen live state overrides devices_screen stale state", async () => {
+    // devices_screen says aux_2 state is "0", but home_screen (live) says "1"
+    const homeResponse = {
+      home_screen: [
+        { status: "Online" },
+        {},
+        {},
+        { temp_scale: "F" },
+        { aux_2: "1" },
+      ],
+    };
+
+    const devicesResponse = {
+      devices_screen: [
+        { status: "Online" },
+        { response: "" },
+        { group: "1" },
+        { aux_2: [{ state: "0" }, { label: "Spa Light" }, { type: "light" }, { subtype: "" }] },
+      ],
+    };
+
+    fetchMock
+      .mockResolvedValueOnce(new Response(JSON.stringify(homeResponse), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify(devicesResponse), { status: 200 }));
+
+    await system.update();
+
+    const spaLight = system.devices.get("aux_2");
+    expect(spaLight).toBeDefined();
+    expect(spaLight!.label).toBe("Spa Light");
+    expect(spaLight!.state).toBe("1"); // home_screen live state wins
+  });
+
+  test("updates aux label when get_devices provides label after get_home", async () => {
+    const homeWithAux = {
+      home_screen: [
+        { status: "Online" },
+        {},
+        {},
+        { temp_scale: "F" },
+        { aux_1: { name: "aux_1", state: "0", type: "light", subtype: "color" } },
+      ],
+    };
+
+    const devicesWithLabel = {
+      devices_screen: [
+        { status: "Online" },
+        { response: "" },
+        { group: "1" },
+        { aux_1: [{ state: "0" }, { label: "Pool Light" }, { type: "light" }, { subtype: "color" }] },
+      ],
+    };
+
+    fetchMock
+      .mockResolvedValueOnce(new Response(JSON.stringify(homeWithAux), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify(devicesWithLabel), { status: 200 }));
+
+    await system.update();
+
+    const poolLight = system.devices.get("aux_1");
+    expect(poolLight).toBeDefined();
+    expect(poolLight!.label).toBe("Pool Light");
+  });
+
+  test("humanizes aux name when no label is provided", async () => {
+    const homeNoAux = {
+      home_screen: [
+        { status: "Online" },
+        {},
+        {},
+        { temp_scale: "F" },
+      ],
+    };
+
+    const devicesNoLabel = {
+      devices_screen: [
+        { status: "Online" },
+        { response: "" },
+        { group: "1" },
+        { aux_3: [{ state: "0" }, { type: "" }, { subtype: "" }] },
+      ],
+    };
+
+    fetchMock
+      .mockResolvedValueOnce(new Response(JSON.stringify(homeNoAux), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify(devicesNoLabel), { status: 200 }));
+
+    await system.update();
+
+    const aux3 = system.devices.get("aux_3");
+    expect(aux3).toBeDefined();
+    expect(aux3!.label).toBe("Aux 3");
+    expect(aux3!.hasCustomLabel).toBe(false);
   });
 
   test("respects rate limiting", async () => {
