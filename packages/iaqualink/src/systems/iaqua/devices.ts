@@ -140,10 +140,17 @@ export function parseIaquaDevices(
   // whose value is either a flat object (home_screen) or an array of
   // single-key objects (devices_screen).
   for (const [name, rawValue] of Object.entries(entry)) {
-    // home_screen may include simple string state values like { "aux_5": "1" }
+    // home_screen returns simple string state values like { "pool_temp": "78" }
     if (typeof rawValue === "string") {
       const existing = system.devices.get(name);
-      if (existing) existing.updateData({ state: rawValue });
+      if (existing) {
+        existing.updateData({ state: rawValue });
+      } else if (TEMP_SENSORS.has(name)) {
+        system.devices.set(
+          name,
+          new IaquaSensor(name, humanizeName(name), { state: rawValue }, system, false),
+        );
+      }
       continue;
     }
     if (typeof rawValue !== "object" || rawValue === null) continue;

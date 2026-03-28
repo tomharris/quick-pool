@@ -38,6 +38,8 @@ Bun-managed monorepo with two workspaces:
 
 **Device factory**: iAqua devices are identified by name pattern (`pool_temp` → sensor, `aux_*` → switch/light based on subtype). eXO devices are parsed from shadow state structure (`sns_*` → sensor, `equipment.swc_0.*` → switches).
 
+**iAqua response formats**: The two iAqua endpoints use different data shapes. `home_screen` returns flat string values (`{"pool_temp": "78"}`), while `devices_screen` returns attribute arrays (`{"aux_1": [{"state":"0"},{"label":"Pool Light"}]}`). Temperature sensors only appear in `home_screen` as strings — they are not in `devices_screen`. See the design spec for full examples.
+
 **Rate limiting**: `system.update()` skips API calls if < 5 seconds since last refresh. Mobile app polls every 30 seconds and supports pull-to-refresh.
 
 **Mobile state flow**: Auth store holds `AqualinkClient` instance → devices store calls `client.getSystems()` → systems own their device maps → components subscribe to `lastRefresh` timestamp to trigger re-renders.

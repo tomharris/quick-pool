@@ -10,9 +10,9 @@ const MOCK_HOME_RESPONSE = {
     {},                                              // index 1
     {},                                              // index 2
     { temp_scale: "F" },                            // index 3
-    { pool_temp: { name: "pool_temp", label: "Pool Temperature", state: "78" } },
-    { spa_temp: { name: "spa_temp", label: "Spa Temperature", state: "102" } },
-    { air_temp: { name: "air_temp", label: "Air Temperature", state: "85" } },
+    { pool_temp: "78" },
+    { spa_temp: "102" },
+    { air_temp: "85" },
     { pool_pump: { name: "pool_pump", label: "Pool Pump", state: "1" } },
     { spa_pump: { name: "spa_pump", label: "Spa Pump", state: "0" } },
     { pool_set_point: { name: "pool_set_point", label: "Pool Heat", state: "1", set_point: "82" } },
@@ -91,7 +91,7 @@ describe("IaquaSystem", () => {
     const poolTemp = system.devices.get("pool_temp");
     expect(poolTemp).toBeDefined();
     expect(poolTemp!.state).toBe("78");
-    expect(poolTemp!.label).toBe("Pool Temperature");
+    expect(poolTemp!.label).toBe("Pool Temp");
 
     const spaTemp = system.devices.get("spa_temp");
     expect(spaTemp!.state).toBe("102");

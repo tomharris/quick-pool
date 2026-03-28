@@ -123,6 +123,36 @@ Both system types share a single login endpoint:
 - Rate limit: 5-second minimum between refreshes (cached responses within window)
 - User-Agent: `okhttp/3.14.7`
 
+#### iAqua Response Formats
+
+The two endpoints use different data shapes — this is a common source of bugs.
+
+**`get_home` → `home_screen`**: Array where index 0 is status, index 3 is `temp_scale`, and index 4+ are device entries. Each entry is a single-key object with a **plain string value** — even for sensors and thermostats:
+```json
+[
+  {"status": "Online"},
+  {}, {},
+  {"temp_scale": "F"},
+  {"pool_temp": "78"},
+  {"spa_temp": "102"},
+  {"air_temp": "85"},
+  {"pool_set_point": "82"},
+  {"aux_1": "0"}
+]
+```
+
+**`get_devices` → `devices_screen`**: Array where index 0 is status and index 3+ are device entries. Each entry is a single-key object whose value is an **array of single-key objects** (attribute bags). Only contains configurable devices (aux, not temp sensors):
+```json
+[
+  {"status": "Online"},
+  {"response": ""},
+  {"group": "1"},
+  {"aux_1": [{"state": "0"}, {"label": "Pool Light"}, {"type": "light"}, {"subtype": "color"}]}
+]
+```
+
+**Key implication**: Temperature sensors (`pool_temp`, `spa_temp`, `air_temp`) only appear in `home_screen` as flat strings. They are **not** present in `devices_screen`. The device factory must handle creating sensors from string values, not just updating existing ones.
+
 ### eXO API Specifics
 
 - Single shadow endpoint: `GET/POST https://prod.zodiac-io.com/devices/v1/{serial}/shadow`
