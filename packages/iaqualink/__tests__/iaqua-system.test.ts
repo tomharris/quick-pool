@@ -3,29 +3,33 @@ import { IaquaSystem } from "../src/systems/iaqua/system.ts";
 import { AqualinkClient } from "../src/client.ts";
 import "../src/systems/iaqua/system.ts";
 
-// Mock home response matching Python library's test format
-const MOCK_HOME_RESPONSE = [
-  { status: "Online" },                          // index 0
-  {},                                              // index 1
-  {},                                              // index 2
-  { temp_scale: "F" },                            // index 3
-  { pool_temp: { name: "pool_temp", label: "Pool Temperature", state: "78" } },
-  { spa_temp: { name: "spa_temp", label: "Spa Temperature", state: "102" } },
-  { air_temp: { name: "air_temp", label: "Air Temperature", state: "85" } },
-  { pool_pump: { name: "pool_pump", label: "Pool Pump", state: "1" } },
-  { spa_pump: { name: "spa_pump", label: "Spa Pump", state: "0" } },
-  { pool_set_point: { name: "pool_set_point", label: "Pool Heat", state: "1", set_point: "82" } },
-  { spa_set_point: { name: "spa_set_point", label: "Spa Heat", state: "0", set_point: "100" } },
-];
+// Mock responses matching real API format (wrapped in home_screen / devices_screen)
+const MOCK_HOME_RESPONSE = {
+  home_screen: [
+    { status: "Online" },                          // index 0
+    {},                                              // index 1
+    {},                                              // index 2
+    { temp_scale: "F" },                            // index 3
+    { pool_temp: { name: "pool_temp", label: "Pool Temperature", state: "78" } },
+    { spa_temp: { name: "spa_temp", label: "Spa Temperature", state: "102" } },
+    { air_temp: { name: "air_temp", label: "Air Temperature", state: "85" } },
+    { pool_pump: { name: "pool_pump", label: "Pool Pump", state: "1" } },
+    { spa_pump: { name: "spa_pump", label: "Spa Pump", state: "0" } },
+    { pool_set_point: { name: "pool_set_point", label: "Pool Heat", state: "1", set_point: "82" } },
+    { spa_set_point: { name: "spa_set_point", label: "Spa Heat", state: "0", set_point: "100" } },
+  ],
+};
 
-const MOCK_DEVICES_RESPONSE = [
-  { status: "Online" },                           // index 0
-  {},                                              // index 1
-  {},                                              // index 2
-  { aux_1: { name: "aux_1", label: "Pool Light", state: "0", type: "light", subtype: "color" } },
-  { aux_2: { name: "aux_2", label: "Spa Light", state: "1", type: "light", subtype: "" } },
-  { aux_3: { name: "aux_3", label: "Waterfall", state: "0", type: "", subtype: "" } },
-];
+const MOCK_DEVICES_RESPONSE = {
+  devices_screen: [
+    { status: "Online" },                           // index 0
+    {},                                              // index 1
+    {},                                              // index 2
+    { aux_1: { name: "aux_1", label: "Pool Light", state: "0", type: "light", subtype: "color" } },
+    { aux_2: { name: "aux_2", label: "Spa Light", state: "1", type: "light", subtype: "" } },
+    { aux_3: { name: "aux_3", label: "Waterfall", state: "0", type: "", subtype: "" } },
+  ],
+};
 
 const MOCK_CREDENTIALS = {
   userId: "user123",

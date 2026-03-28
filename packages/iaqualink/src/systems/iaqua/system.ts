@@ -5,8 +5,8 @@ import {
   AqualinkSystemOfflineError,
 } from "../../errors.ts";
 import type {
-  IaquaHomeResponse,
-  IaquaDevicesResponse,
+  IaquaHomeWrappedResponse,
+  IaquaDevicesWrappedResponse,
 } from "../../types.ts";
 import { parseIaquaDevices } from "./devices.ts";
 
@@ -15,11 +15,11 @@ export class IaquaSystem extends AqualinkSystem {
   tempUnit = "F";
 
   protected async fetchDevices(): Promise<void> {
-    const homeData = await this.sendCommand("get_home");
-    this.parseHomeResponse(homeData as IaquaHomeResponse);
+    const homeRaw = (await this.sendCommand("get_home")) as IaquaHomeWrappedResponse;
+    this.parseHomeResponse(homeRaw.home_screen ?? []);
 
-    const devicesData = await this.sendCommand("get_devices");
-    this.parseDevicesResponse(devicesData as IaquaDevicesResponse);
+    const devicesRaw = (await this.sendCommand("get_devices")) as IaquaDevicesWrappedResponse;
+    this.parseDevicesResponse(devicesRaw.devices_screen ?? []);
   }
 
   async sendCommand(

@@ -40,11 +40,21 @@ export interface IaquaDeviceData {
   [key: string]: unknown;
 }
 
-/** Raw response from iAqua session.json?command=get_home */
+/** Unwrapped array from iAqua get_home response */
 export type IaquaHomeResponse = Record<string, unknown>[];
 
-/** Raw response from iAqua session.json?command=get_devices */
+/** Unwrapped array from iAqua get_devices response */
 export type IaquaDevicesResponse = Record<string, unknown>[];
+
+/** Raw wrapped response from iAqua session.json?command=get_home */
+export interface IaquaHomeWrappedResponse {
+  home_screen?: IaquaHomeResponse;
+}
+
+/** Raw wrapped response from iAqua session.json?command=get_devices */
+export interface IaquaDevicesWrappedResponse {
+  devices_screen?: IaquaDevicesResponse;
+}
 
 // --- eXO types ---
 

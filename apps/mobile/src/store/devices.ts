@@ -36,17 +36,15 @@ export const useDevicesStore = create<DevicesState>((set, get) => ({
       const systems = await client.getSystems();
       const firstSerial = systems.keys().next().value ?? null;
 
-      set({
-        systems,
-        activeSystemSerial: firstSerial,
-        isLoading: false,
-      });
+      set({ systems, activeSystemSerial: firstSerial });
 
       // Fetch devices for the active system
       if (firstSerial) {
         const system = systems.get(firstSerial)!;
         await system.update();
-        set({ lastRefresh: Date.now() });
+        set({ isLoading: false, lastRefresh: Date.now() });
+      } else {
+        set({ isLoading: false });
       }
     } catch (e) {
       set({
