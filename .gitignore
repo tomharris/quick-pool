@@ -1,0 +1,4 @@
+.claude/*.local.*
+.superpowers
+
+node_modules/*
