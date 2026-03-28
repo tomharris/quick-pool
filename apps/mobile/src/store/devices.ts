@@ -3,6 +3,7 @@ import {
   AqualinkSystem,
   AqualinkDevice,
   AqualinkSwitch,
+  AqualinkUnauthorizedError,
 } from "@quick-pool/iaqualink";
 import { useAuthStore } from "./auth";
 
@@ -11,6 +12,7 @@ interface DevicesState {
   activeSystemSerial: string | null;
   isLoading: boolean;
   error: string | null;
+  isAuthError: boolean;
   lastRefresh: number | null;
 
   loadSystems: () => Promise<void>;
@@ -24,10 +26,11 @@ export const useDevicesStore = create<DevicesState>((set, get) => ({
   activeSystemSerial: null,
   isLoading: false,
   error: null,
+  isAuthError: false,
   lastRefresh: null,
 
   loadSystems: async () => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: null, isAuthError: false });
     try {
       const { client } = useAuthStore.getState();
       const systems = await client.getSystems();
@@ -49,6 +52,7 @@ export const useDevicesStore = create<DevicesState>((set, get) => ({
       set({
         isLoading: false,
         error: e instanceof Error ? e.message : "Failed to load systems",
+        isAuthError: e instanceof AqualinkUnauthorizedError,
       });
     }
   },
@@ -60,7 +64,7 @@ export const useDevicesStore = create<DevicesState>((set, get) => ({
     const system = systems.get(activeSystemSerial);
     if (!system) return;
 
-    set({ error: null });
+    set({ error: null, isAuthError: false });
     try {
       // Force refresh by resetting lastRefresh on the system
       system.lastRefresh = 0;
@@ -69,6 +73,7 @@ export const useDevicesStore = create<DevicesState>((set, get) => ({
     } catch (e) {
       set({
         error: e instanceof Error ? e.message : "Failed to refresh",
+        isAuthError: e instanceof AqualinkUnauthorizedError,
       });
     }
   },
@@ -96,6 +101,7 @@ export const useDevicesStore = create<DevicesState>((set, get) => ({
     } catch (e) {
       set({
         error: e instanceof Error ? e.message : "Failed to toggle device",
+        isAuthError: e instanceof AqualinkUnauthorizedError,
       });
     }
   },

@@ -33,8 +33,13 @@ export class AqualinkClient {
       }),
     });
 
+    const body = await response.text();
+    console.warn(`[iaqualink] login response ${response.status}: ${body.slice(0, 500)}`);
+
     if (response.status === 401) {
-      throw new AqualinkUnauthorizedError();
+      throw new AqualinkUnauthorizedError(
+        body ? `Login rejected: ${body}` : "Unauthorized",
+      );
     }
 
     if (!response.ok) {
@@ -44,7 +49,20 @@ export class AqualinkClient {
       );
     }
 
-    const data = (await response.json()) as LoginResponse;
+    let data: LoginResponse;
+    try {
+      data = JSON.parse(body) as LoginResponse;
+    } catch {
+      throw new AqualinkServiceError(
+        `Login returned invalid JSON: ${body.slice(0, 200)}`,
+      );
+    }
+
+    if (!data.userPoolOAuth?.IdToken) {
+      throw new AqualinkServiceError(
+        `Login response missing expected fields: ${body.slice(0, 200)}`,
+      );
+    }
 
     this.credentials = {
       userId: data.id,
@@ -58,6 +76,7 @@ export class AqualinkClient {
     this.requireAuth();
 
     const url = new URL(AQUALINK_DEVICES_URL);
+    url.searchParams.set("api_key", AQUALINK_API_KEY);
     url.searchParams.set(
       "authentication_token",
       this.credentials!.authToken,
@@ -68,19 +87,31 @@ export class AqualinkClient {
       headers: HTTP_HEADERS,
     });
 
+    const devicesBody = await response.text();
+    console.warn(`[iaqualink] getSystems response ${response.status}: ${devicesBody.slice(0, 500)}`);
+
     if (response.status === 401) {
       this.credentials = null;
-      throw new AqualinkUnauthorizedError();
+      throw new AqualinkUnauthorizedError(
+        `Session rejected: ${devicesBody.slice(0, 200)}`,
+      );
     }
 
     if (!response.ok) {
       throw new AqualinkServiceError(
-        `Failed to fetch devices: ${response.status}`,
+        `Failed to fetch devices: ${response.status} ${devicesBody.slice(0, 200)}`,
         response.status,
       );
     }
 
-    const devices = (await response.json()) as DeviceListEntry[];
+    let devices: DeviceListEntry[];
+    try {
+      devices = JSON.parse(devicesBody) as DeviceListEntry[];
+    } catch {
+      throw new AqualinkServiceError(
+        `Devices returned invalid JSON: ${devicesBody.slice(0, 200)}`,
+      );
+    }
     const systems = new Map<string, AqualinkSystem>();
 
     for (const device of devices) {

@@ -137,6 +137,7 @@ describe("AqualinkClient", () => {
       expect(parsed.origin + parsed.pathname).toBe(
         "https://r-api.iaqualink.net/devices.json",
       );
+      expect(parsed.searchParams.get("api_key")).toBe("EOOEMOW4YR6QNB07");
       expect(parsed.searchParams.get("authentication_token")).toBe("auth789");
       expect(parsed.searchParams.get("user_id")).toBe("user123");
     });

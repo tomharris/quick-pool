@@ -67,10 +67,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       const { email, password } = JSON.parse(stored) as StoredCredentials;
       const { client } = get();
-      await client.login(email, password);
+      await client.login(email.trim(), password.trim());
       set({ isLoggedIn: true, isLoading: false });
-    } catch {
-      // Stored credentials are invalid, clear them
+    } catch (e) {
+      console.warn("[auth] session restore failed:", e instanceof Error ? e.message : e);
       await SecureStore.deleteItemAsync(CREDS_KEY);
       set({ isLoading: false });
     }

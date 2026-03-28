@@ -21,7 +21,7 @@ export function LoginScreen() {
   const handleLogin = useCallback(async () => {
     if (!email.trim() || !password.trim()) return;
     try {
-      await login(email.trim(), password);
+      await login(email.trim(), password.trim());
     } catch {
       // Error is already set in store
     }

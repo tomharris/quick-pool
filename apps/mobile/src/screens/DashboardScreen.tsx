@@ -6,6 +6,7 @@ import {
   StyleSheet,
   RefreshControl,
   ActivityIndicator,
+  TouchableOpacity,
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import {
@@ -15,6 +16,7 @@ import {
   AqualinkLight,
 } from "@quick-pool/iaqualink";
 import { useDevicesStore } from "../store/devices";
+import { useAuthStore } from "../store/auth";
 import { useDevicePolling, useGroupedDevices } from "../hooks/useDevices";
 import { TemperatureDisplay } from "../components/TemperatureDisplay";
 import { DeviceTile } from "../components/DeviceTile";
@@ -27,7 +29,9 @@ export function DashboardScreen({ navigation }: Props) {
 
   const isLoading = useDevicesStore((s) => s.isLoading);
   const error = useDevicesStore((s) => s.error);
+  const isAuthError = useDevicesStore((s) => s.isAuthError);
   const refreshDevices = useDevicesStore((s) => s.refreshDevices);
+  const logout = useAuthStore((s) => s.logout);
   const toggleDevice = useDevicesStore((s) => s.toggleDevice);
   const systems = useDevicesStore((s) => s.systems);
   const activeSerial = useDevicesStore((s) => s.activeSystemSerial);
@@ -79,7 +83,14 @@ export function DashboardScreen({ navigation }: Props) {
           <>
             <TemperatureDisplay sensors={sensors} tempUnit={tempUnit} />
             {error && (
-              <Text style={styles.errorText}>{error}</Text>
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{error}</Text>
+                {isAuthError && (
+                  <TouchableOpacity onPress={logout} activeOpacity={0.8}>
+                    <Text style={styles.signOutLink}>Sign Out</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
             )}
             {controllableDevices.length > 0 && (
               <Text style={styles.sectionTitle}>Devices</Text>
@@ -118,12 +129,22 @@ const styles = StyleSheet.create({
     marginTop: 12,
     fontSize: 14,
   },
+  errorContainer: {
+    alignItems: "center",
+    marginTop: 8,
+    marginHorizontal: 16,
+  },
   errorText: {
     color: "#ef5350",
     fontSize: 13,
     textAlign: "center",
-    marginHorizontal: 16,
+  },
+  signOutLink: {
+    color: "#4fc3f7",
+    fontSize: 14,
+    fontWeight: "600",
     marginTop: 8,
+    paddingVertical: 4,
   },
   sectionTitle: {
     color: "#888",
