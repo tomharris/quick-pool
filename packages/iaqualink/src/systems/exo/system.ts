@@ -1,12 +1,12 @@
-import { AqualinkSystem, type SystemType } from "../../system.js";
-import { EXO_SHADOW_URL, HTTP_HEADERS } from "../../constants.js";
+import { AqualinkSystem, type SystemType } from "../../system.ts";
+import { EXO_SHADOW_URL, HTTP_HEADERS } from "../../constants.ts";
 import {
   AqualinkServiceError,
   AqualinkSystemOfflineError,
   AqualinkUnauthorizedError,
-} from "../../errors.js";
-import type { ExoShadowState } from "../../types.js";
-import { parseExoDevices } from "./devices.js";
+} from "../../errors.ts";
+import type { ExoShadowState } from "../../types.ts";
+import { parseExoDevices } from "./devices.ts";
 
 export class ExoSystem extends AqualinkSystem {
   readonly type: SystemType = "exo";

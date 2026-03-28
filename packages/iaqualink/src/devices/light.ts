@@ -1,4 +1,4 @@
-import { AqualinkSwitch } from "./base.js";
+import { AqualinkSwitch } from "./base.ts";
 
 export type Brightness = 0 | 25 | 50 | 75 | 100;
 

@@ -1,14 +1,14 @@
-import { AqualinkSystem, type SystemType } from "../../system.js";
-import { IAQUA_SESSION_URL, HTTP_HEADERS } from "../../constants.js";
+import { AqualinkSystem, type SystemType } from "../../system.ts";
+import { IAQUA_SESSION_URL, HTTP_HEADERS } from "../../constants.ts";
 import {
   AqualinkServiceError,
   AqualinkSystemOfflineError,
-} from "../../errors.js";
+} from "../../errors.ts";
 import type {
   IaquaHomeResponse,
   IaquaDevicesResponse,
-} from "../../types.js";
-import { parseIaquaDevices } from "./devices.js";
+} from "../../types.ts";
+import { parseIaquaDevices } from "./devices.ts";
 
 export class IaquaSystem extends AqualinkSystem {
   readonly type: SystemType = "iaqua";

@@ -1,7 +1,7 @@
 import { describe, test, expect, beforeEach, mock } from "bun:test";
-import { IaquaSystem } from "../src/systems/iaqua/system.js";
-import { AqualinkClient } from "../src/client.js";
-import "../src/systems/iaqua/system.js";
+import { IaquaSystem } from "../src/systems/iaqua/system.ts";
+import { AqualinkClient } from "../src/client.ts";
+import "../src/systems/iaqua/system.ts";
 
 // Mock home response matching Python library's test format
 const MOCK_HOME_RESPONSE = [

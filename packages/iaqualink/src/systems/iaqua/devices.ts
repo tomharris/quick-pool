@@ -1,11 +1,11 @@
 import {
   AqualinkSensor,
   AqualinkSwitch,
-} from "../../devices/base.js";
-import { AqualinkThermostat } from "../../devices/thermostat.js";
-import { AqualinkLight, type Brightness } from "../../devices/light.js";
-import type { AqualinkSystem } from "../../system.js";
-import type { IaquaSystem } from "./system.js";
+} from "../../devices/base.ts";
+import { AqualinkThermostat } from "../../devices/thermostat.ts";
+import { AqualinkLight, type Brightness } from "../../devices/light.ts";
+import type { AqualinkSystem } from "../../system.ts";
+import type { IaquaSystem } from "./system.ts";
 
 // --- iAqua device implementations ---
 

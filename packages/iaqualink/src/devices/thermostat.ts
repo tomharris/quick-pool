@@ -1,4 +1,4 @@
-import { AqualinkSwitch } from "./base.js";
+import { AqualinkSwitch } from "./base.ts";
 
 export abstract class AqualinkThermostat extends AqualinkSwitch {
   get currentTemperature(): number | null {

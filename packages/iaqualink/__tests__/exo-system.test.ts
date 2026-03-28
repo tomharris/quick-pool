@@ -1,7 +1,7 @@
 import { describe, test, expect, beforeEach, mock } from "bun:test";
-import { ExoSystem } from "../src/systems/exo/system.js";
-import { AqualinkClient } from "../src/client.js";
-import "../src/systems/exo/system.js";
+import { ExoSystem } from "../src/systems/exo/system.ts";
+import { AqualinkClient } from "../src/client.ts";
+import "../src/systems/exo/system.ts";
 
 const MOCK_SHADOW_RESPONSE = {
   state: {

@@ -3,17 +3,17 @@ import {
   AQUALINK_DEVICES_URL,
   AQUALINK_LOGIN_URL,
   HTTP_HEADERS,
-} from "./constants.js";
+} from "./constants.ts";
 import {
   AqualinkServiceError,
   AqualinkUnauthorizedError,
-} from "./errors.js";
+} from "./errors.ts";
 import type {
   AqualinkCredentials,
   DeviceListEntry,
   LoginResponse,
-} from "./types.js";
-import { AqualinkSystem } from "./system.js";
+} from "./types.ts";
+import { AqualinkSystem } from "./system.ts";
 
 export class AqualinkClient {
   private credentials: AqualinkCredentials | null = null;

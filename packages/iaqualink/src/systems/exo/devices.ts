@@ -1,11 +1,11 @@
 import {
   AqualinkSensor,
   AqualinkSwitch,
-} from "../../devices/base.js";
-import { AqualinkThermostat } from "../../devices/thermostat.js";
-import type { AqualinkSystem } from "../../system.js";
-import type { ExoSystem } from "./system.js";
-import type { ExoReportedState } from "../../types.js";
+} from "../../devices/base.ts";
+import { AqualinkThermostat } from "../../devices/thermostat.ts";
+import type { AqualinkSystem } from "../../system.ts";
+import type { ExoSystem } from "./system.ts";
+import type { ExoReportedState } from "../../types.ts";
 
 // --- eXO device implementations ---
 

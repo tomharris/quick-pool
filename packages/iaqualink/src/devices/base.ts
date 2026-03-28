@@ -1,4 +1,4 @@
-import type { AqualinkSystem } from "../system.js";
+import type { AqualinkSystem } from "../system.ts";
 
 export abstract class AqualinkDevice {
   constructor(

@@ -1,12 +1,12 @@
 // Client
-export { AqualinkClient } from "./client.js";
+export { AqualinkClient } from "./client.ts";
 
 // System
-export { AqualinkSystem, type SystemType } from "./system.js";
+export { AqualinkSystem, type SystemType } from "./system.ts";
 
 // Register system types (side-effect imports)
-import "./systems/iaqua/system.js";
-import "./systems/exo/system.js";
+import "./systems/iaqua/system.ts";
+import "./systems/exo/system.ts";
 
 // Device base classes
 export {
@@ -14,9 +14,9 @@ export {
   AqualinkSensor,
   AqualinkBinarySensor,
   AqualinkSwitch,
-} from "./devices/base.js";
-export { AqualinkThermostat } from "./devices/thermostat.js";
-export { AqualinkLight, type Brightness } from "./devices/light.js";
+} from "./devices/base.ts";
+export { AqualinkThermostat } from "./devices/thermostat.ts";
+export { AqualinkLight, type Brightness } from "./devices/light.ts";
 
 // iAqua devices
 export {
@@ -26,8 +26,8 @@ export {
   IaquaLightSwitch,
   IaquaDimmableLight,
   IaquaColorLight,
-} from "./systems/iaqua/devices.js";
-export { IaquaSystem } from "./systems/iaqua/system.js";
+} from "./systems/iaqua/devices.ts";
+export { IaquaSystem } from "./systems/iaqua/system.ts";
 
 // eXO devices
 export {
@@ -35,8 +35,8 @@ export {
   ExoAuxSwitch,
   ExoToggleSwitch,
   ExoThermostat,
-} from "./systems/exo/devices.js";
-export { ExoSystem } from "./systems/exo/system.js";
+} from "./systems/exo/devices.ts";
+export { ExoSystem } from "./systems/exo/system.ts";
 
 // Types
 export type {
@@ -46,7 +46,7 @@ export type {
   IaquaDeviceData,
   ExoShadowState,
   ExoReportedState,
-} from "./types.js";
+} from "./types.ts";
 
 // Errors
 export {
@@ -55,7 +55,7 @@ export {
   AqualinkUnauthorizedError,
   AqualinkSystemOfflineError,
   AqualinkInvalidParameterError,
-} from "./errors.js";
+} from "./errors.ts";
 
 // Constants
 export {
@@ -64,4 +64,4 @@ export {
   IAQUA_SESSION_URL,
   EXO_SHADOW_URL,
   MIN_SECS_TO_REFRESH,
-} from "./constants.js";
+} from "./constants.ts";

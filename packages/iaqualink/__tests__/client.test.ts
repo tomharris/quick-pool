@@ -1,10 +1,10 @@
 import { describe, test, expect, beforeEach, mock } from "bun:test";
-import { AqualinkClient } from "../src/client.js";
-import { AqualinkUnauthorizedError, AqualinkServiceError } from "../src/errors.js";
+import { AqualinkClient } from "../src/client.ts";
+import { AqualinkUnauthorizedError, AqualinkServiceError } from "../src/errors.ts";
 
 // Import system registrations
-import "../src/systems/iaqua/system.js";
-import "../src/systems/exo/system.js";
+import "../src/systems/iaqua/system.ts";
+import "../src/systems/exo/system.ts";
 
 const MOCK_LOGIN_RESPONSE = {
   id: "user123",

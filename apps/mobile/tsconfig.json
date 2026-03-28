@@ -2,6 +2,7 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
+    "allowImportingTsExtensions": true,
     "paths": {
       "@quick-pool/iaqualink": ["../../packages/iaqualink/src/index.ts"]
     }

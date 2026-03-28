@@ -1,7 +1,7 @@
-import type { AqualinkClient } from "./client.js";
-import type { AqualinkDevice } from "./devices/base.js";
-import type { DeviceListEntry } from "./types.js";
-import { MIN_SECS_TO_REFRESH } from "./constants.js";
+import type { AqualinkClient } from "./client.ts";
+import type { AqualinkDevice } from "./devices/base.ts";
+import type { DeviceListEntry } from "./types.ts";
+import { MIN_SECS_TO_REFRESH } from "./constants.ts";
 
 export type SystemType = "iaqua" | "exo";
 
