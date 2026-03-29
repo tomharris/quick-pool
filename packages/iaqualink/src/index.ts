@@ -26,6 +26,7 @@ export {
   IaquaLightSwitch,
   IaquaDimmableLight,
   IaquaColorLight,
+  IaquaOneTouch,
 } from "./systems/iaqua/devices.ts";
 export { IaquaSystem } from "./systems/iaqua/system.ts";
 

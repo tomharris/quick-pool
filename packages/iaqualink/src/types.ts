@@ -56,6 +56,11 @@ export interface IaquaDevicesWrappedResponse {
   devices_screen?: IaquaDevicesResponse;
 }
 
+/** Raw wrapped response from iAqua session.json?command=get_onetouch */
+export interface IaquaOneTouchWrappedResponse {
+  onetouch_screen?: IaquaDevicesResponse;
+}
+
 // --- eXO types ---
 
 /** eXO shadow state from GET /devices/v1/{serial}/shadow */

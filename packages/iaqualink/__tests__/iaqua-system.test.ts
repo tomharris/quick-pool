@@ -1,5 +1,6 @@
 import { describe, test, expect, beforeEach, mock } from "bun:test";
 import { IaquaSystem } from "../src/systems/iaqua/system.ts";
+import { IaquaOneTouch } from "../src/systems/iaqua/devices.ts";
 import { AqualinkClient } from "../src/client.ts";
 import "../src/systems/iaqua/system.ts";
 
@@ -36,6 +37,21 @@ const MOCK_DEVICES_RESPONSE = {
   ],
 };
 
+const MOCK_ONETOUCH_RESPONSE = {
+  onetouch_screen: [
+    { status: "Online" },
+    { response: "" },
+    { group: "1" },
+    { onetouch_1: [{ state: "0" }, { label: "All Off" }, { status: "0" }] },
+    { onetouch_2: [{ state: "1" }, { label: "Spa Mode" }, { status: "1" }] },
+    { onetouch_3: [{ state: "0" }, { label: "Party" }, { status: "0" }] },
+  ],
+};
+
+const MOCK_EMPTY_ONETOUCH = {
+  onetouch_screen: [],
+};
+
 const MOCK_CREDENTIALS = {
   userId: "user123",
   sessionId: "session456",
@@ -69,6 +85,9 @@ describe("IaquaSystem", () => {
       )
       .mockResolvedValueOnce(
         new Response(JSON.stringify(MOCK_DEVICES_RESPONSE), { status: 200 }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(MOCK_EMPTY_ONETOUCH), { status: 200 }),
       );
 
     await system.update();
@@ -84,6 +103,9 @@ describe("IaquaSystem", () => {
       )
       .mockResolvedValueOnce(
         new Response(JSON.stringify(MOCK_DEVICES_RESPONSE), { status: 200 }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(MOCK_EMPTY_ONETOUCH), { status: 200 }),
       );
 
     await system.update();
@@ -107,6 +129,9 @@ describe("IaquaSystem", () => {
       )
       .mockResolvedValueOnce(
         new Response(JSON.stringify(MOCK_DEVICES_RESPONSE), { status: 200 }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(MOCK_EMPTY_ONETOUCH), { status: 200 }),
       );
 
     await system.update();
@@ -126,6 +151,9 @@ describe("IaquaSystem", () => {
       )
       .mockResolvedValueOnce(
         new Response(JSON.stringify(MOCK_DEVICES_RESPONSE), { status: 200 }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(MOCK_EMPTY_ONETOUCH), { status: 200 }),
       );
 
     await system.update();
@@ -142,6 +170,9 @@ describe("IaquaSystem", () => {
       )
       .mockResolvedValueOnce(
         new Response(JSON.stringify(MOCK_DEVICES_RESPONSE), { status: 200 }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(MOCK_EMPTY_ONETOUCH), { status: 200 }),
       );
 
     await system.update();
@@ -206,7 +237,8 @@ describe("IaquaSystem", () => {
 
     fetchMock
       .mockResolvedValueOnce(new Response(JSON.stringify(homeResponse), { status: 200 }))
-      .mockResolvedValueOnce(new Response(JSON.stringify(devicesResponse), { status: 200 }));
+      .mockResolvedValueOnce(new Response(JSON.stringify(devicesResponse), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify(MOCK_EMPTY_ONETOUCH), { status: 200 }));
 
     await system.update();
 
@@ -238,7 +270,8 @@ describe("IaquaSystem", () => {
 
     fetchMock
       .mockResolvedValueOnce(new Response(JSON.stringify(homeWithAux), { status: 200 }))
-      .mockResolvedValueOnce(new Response(JSON.stringify(devicesWithLabel), { status: 200 }));
+      .mockResolvedValueOnce(new Response(JSON.stringify(devicesWithLabel), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify(MOCK_EMPTY_ONETOUCH), { status: 200 }));
 
     await system.update();
 
@@ -268,7 +301,8 @@ describe("IaquaSystem", () => {
 
     fetchMock
       .mockResolvedValueOnce(new Response(JSON.stringify(homeNoAux), { status: 200 }))
-      .mockResolvedValueOnce(new Response(JSON.stringify(devicesNoLabel), { status: 200 }));
+      .mockResolvedValueOnce(new Response(JSON.stringify(devicesNoLabel), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify(MOCK_EMPTY_ONETOUCH), { status: 200 }));
 
     await system.update();
 
@@ -285,6 +319,9 @@ describe("IaquaSystem", () => {
       )
       .mockResolvedValueOnce(
         new Response(JSON.stringify(MOCK_DEVICES_RESPONSE), { status: 200 }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(MOCK_EMPTY_ONETOUCH), { status: 200 }),
       );
 
     await system.update();
@@ -293,5 +330,36 @@ describe("IaquaSystem", () => {
     // Second update within 5s should be a no-op
     await system.update();
     expect(fetchMock.mock.calls.length).toBe(callCount);
+  });
+
+  test("parses onetouch scenes", async () => {
+    fetchMock
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(MOCK_HOME_RESPONSE), { status: 200 }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(MOCK_DEVICES_RESPONSE), { status: 200 }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(MOCK_ONETOUCH_RESPONSE), { status: 200 }),
+      );
+
+    await system.update();
+
+    const allOff = system.devices.get("onetouch_1");
+    expect(allOff).toBeDefined();
+    expect(allOff).toBeInstanceOf(IaquaOneTouch);
+    expect(allOff!.label).toBe("All Off");
+    expect(allOff!.state).toBe("0");
+
+    const spaMode = system.devices.get("onetouch_2");
+    expect(spaMode).toBeDefined();
+    expect(spaMode).toBeInstanceOf(IaquaOneTouch);
+    expect(spaMode!.label).toBe("Spa Mode");
+    expect(spaMode!.state).toBe("1");
+
+    const party = system.devices.get("onetouch_3");
+    expect(party).toBeDefined();
+    expect(party!.label).toBe("Party");
   });
 });

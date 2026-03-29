@@ -6,8 +6,11 @@ import {
   AqualinkUnauthorizedError,
 } from "../../errors.ts";
 import type {
+  IaquaHomeResponse,
   IaquaHomeWrappedResponse,
+  IaquaDevicesResponse,
   IaquaDevicesWrappedResponse,
+  IaquaOneTouchWrappedResponse,
 } from "../../types.ts";
 import { parseIaquaDevices } from "./devices.ts";
 
@@ -18,11 +21,13 @@ export class IaquaSystem extends AqualinkSystem {
   protected async fetchDevices(): Promise<void> {
     const homeRaw = (await this.sendCommand("get_home")) as IaquaHomeWrappedResponse;
     const devicesRaw = (await this.sendCommand("get_devices")) as IaquaDevicesWrappedResponse;
+    const oneTouchRaw = (await this.sendCommand("get_onetouch")) as IaquaOneTouchWrappedResponse;
 
     // Parse devices_screen first (device config: labels, types, subtypes),
     // then home_screen (live state) so fresh state overwrites stale values.
     this.parseDevicesResponse(devicesRaw.devices_screen ?? []);
     this.parseHomeResponse(homeRaw.home_screen ?? []);
+    this.parseOneTouchResponse(oneTouchRaw.onetouch_screen ?? []);
   }
 
   async sendCommand(
@@ -94,6 +99,16 @@ export class IaquaSystem extends AqualinkSystem {
     }
   }
 
+  private parseOneTouchResponse(data: IaquaDevicesResponse): void {
+    if (!Array.isArray(data) || data.length === 0) return;
+
+    // Same structure as devices_screen: index 0 is status, scenes from index 3+
+    for (let i = 3; i < data.length; i++) {
+      const entry = data[i] as Record<string, unknown>;
+      parseIaquaDevices(entry, this);
+    }
+  }
+
   private parseDevicesResponse(data: IaquaDevicesResponse): void {
     if (!Array.isArray(data) || data.length === 0) return;
 
@@ -137,6 +152,11 @@ export class IaquaSystem extends AqualinkSystem {
 
   async setHeater(heaterName: string): Promise<void> {
     await this.sendCommand(`set_${heaterName}`);
+  }
+
+  async setOneTouch(name: string): Promise<void> {
+    const num = name.replace("onetouch_", "");
+    await this.sendCommand(`set_onetouch_${num}`);
   }
 }
 

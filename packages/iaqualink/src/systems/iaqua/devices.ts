@@ -101,6 +101,16 @@ export class IaquaColorLight extends IaquaDimmableLight {
   }
 }
 
+export class IaquaOneTouch extends IaquaSwitch {
+  async turnOn(): Promise<void> {
+    await (this.system as IaquaSystem).setOneTouch(this.name);
+  }
+
+  async turnOff(): Promise<void> {
+    await (this.system as IaquaSystem).setOneTouch(this.name);
+  }
+}
+
 /** Convert "aux_1" → "Aux 1", "pool_temp" → "Pool Temp" */
 function humanizeName(name: string): string {
   return name
@@ -222,6 +232,11 @@ export function parseIaquaDevices(
           new IaquaSwitch(name, label, deviceData, system, hasCustomLabel),
         );
       }
+    } else if (name.startsWith("onetouch_")) {
+      system.devices.set(
+        name,
+        new IaquaOneTouch(name, label, deviceData, system, true),
+      );
     }
     // Skip unknown device types silently (matches Python library behavior)
   }
