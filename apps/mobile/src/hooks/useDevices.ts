@@ -44,11 +44,20 @@ export function useDeviceList() {
   return Array.from(system.devices.values());
 }
 
+const PUMP_AND_HEATER_NAMES = new Set([
+  "pool_pump",
+  "spa_pump",
+  "pool_heater",
+  "spa_heater",
+  "solar_heater",
+]);
+
 /** Get devices grouped by type for the dashboard. */
 export function useGroupedDevices() {
   const devices = useDeviceList();
 
   const sensors: AqualinkDevice[] = [];
+  const pumpsAndHeaters: AqualinkDevice[] = [];
   const switches: AqualinkDevice[] = [];
   const thermostats: AqualinkDevice[] = [];
   const lights: AqualinkDevice[] = [];
@@ -61,6 +70,8 @@ export function useGroupedDevices() {
       thermostats.push(device);
     } else if (device instanceof AqualinkLight) {
       lights.push(device);
+    } else if (device instanceof AqualinkSwitch && PUMP_AND_HEATER_NAMES.has(device.name)) {
+      pumpsAndHeaters.push(device);
     } else if (device instanceof AqualinkSwitch) {
       switches.push(device);
     } else if (device instanceof AqualinkSensor) {
@@ -68,5 +79,5 @@ export function useGroupedDevices() {
     }
   }
 
-  return { sensors, switches, thermostats, lights };
+  return { sensors, pumpsAndHeaters, switches, thermostats, lights };
 }

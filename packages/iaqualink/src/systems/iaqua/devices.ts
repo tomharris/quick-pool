@@ -158,6 +158,11 @@ export function parseIaquaDevices(
           name,
           new IaquaSensor(name, humanizeName(name), { state: rawValue }, system, false),
         );
+      } else if (PUMPS_AND_HEATERS.has(name)) {
+        system.devices.set(
+          name,
+          new IaquaSwitch(name, humanizeName(name), { state: rawValue }, system, false),
+        );
       }
       continue;
     }
