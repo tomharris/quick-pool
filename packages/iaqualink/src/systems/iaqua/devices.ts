@@ -101,6 +101,8 @@ export class IaquaColorLight extends IaquaDimmableLight {
   }
 }
 
+// One-touch scenes are toggle-only in the iAqualink API — the same command
+// activates or deactivates the scene, so turnOn and turnOff are identical.
 export class IaquaOneTouch extends IaquaSwitch {
   async turnOn(): Promise<void> {
     await (this.system as IaquaSystem).setOneTouch(this.name);

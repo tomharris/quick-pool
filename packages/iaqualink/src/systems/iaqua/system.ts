@@ -25,6 +25,7 @@ export class IaquaSystem extends AqualinkSystem {
 
     // Parse devices_screen first (device config: labels, types, subtypes),
     // then home_screen (live state) so fresh state overwrites stale values.
+    // onetouch_screen is independent and parsed last.
     this.parseDevicesResponse(devicesRaw.devices_screen ?? []);
     this.parseHomeResponse(homeRaw.home_screen ?? []);
     this.parseOneTouchResponse(oneTouchRaw.onetouch_screen ?? []);
