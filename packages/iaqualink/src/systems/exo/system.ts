@@ -26,14 +26,7 @@ export class ExoSystem extends AqualinkSystem {
   }
 
   async getShadow(): Promise<ExoShadowState> {
-    const response = await this.shadowRequest("GET");
-
-    if (response.status === 401) {
-      // Try refreshing the token once
-      throw new AqualinkUnauthorizedError(
-        "eXO token expired — caller should re-login and retry",
-      );
-    }
+    const response = await this.shadowRequestWithRetry("GET");
 
     if (!response.ok) {
       throw new AqualinkServiceError(
@@ -47,13 +40,7 @@ export class ExoSystem extends AqualinkSystem {
 
   async setDesiredState(desired: Record<string, unknown>): Promise<void> {
     const body = { state: { desired } };
-    const response = await this.shadowRequest("POST", body);
-
-    if (response.status === 401) {
-      throw new AqualinkUnauthorizedError(
-        "eXO token expired — caller should re-login and retry",
-      );
-    }
+    const response = await this.shadowRequestWithRetry("POST", body);
 
     if (!response.ok) {
       throw new AqualinkServiceError(
@@ -61,6 +48,24 @@ export class ExoSystem extends AqualinkSystem {
         response.status,
       );
     }
+  }
+
+  private async shadowRequestWithRetry(
+    method: "GET" | "POST",
+    body?: unknown,
+  ): Promise<Response> {
+    const response = await this.shadowRequest(method, body);
+
+    if (response.status === 401) {
+      await this.client.refreshLogin();
+      const retry = await this.shadowRequest(method, body);
+      if (retry.status === 401) {
+        throw new AqualinkUnauthorizedError("eXO token expired and re-login failed");
+      }
+      return retry;
+    }
+
+    return response;
   }
 
   private async shadowRequest(

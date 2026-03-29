@@ -121,6 +121,19 @@ describe("AqualinkClient", () => {
       expect(system.serial).toBe("POOL001");
     });
 
+    test("handles empty devices list", async () => {
+      fetchMock.mockResolvedValueOnce(
+        new Response(JSON.stringify(MOCK_LOGIN_RESPONSE), { status: 200 }),
+      );
+      await client.login("test@example.com", "password");
+
+      fetchMock.mockResolvedValueOnce(
+        new Response(JSON.stringify([]), { status: 200 }),
+      );
+      const systems = await client.getSystems();
+      expect(systems.size).toBe(0);
+    });
+
     test("uses correct auth params in devices URL", async () => {
       fetchMock.mockResolvedValueOnce(
         new Response(JSON.stringify(MOCK_LOGIN_RESPONSE), { status: 200 }),
@@ -140,6 +153,61 @@ describe("AqualinkClient", () => {
       expect(parsed.searchParams.get("api_key")).toBe("EOOEMOW4YR6QNB07");
       expect(parsed.searchParams.get("authentication_token")).toBe("auth789");
       expect(parsed.searchParams.get("user_id")).toBe("user123");
+    });
+  });
+
+  describe("refreshLogin", () => {
+    test("throws when no stored credentials", async () => {
+      expect(client.refreshLogin()).rejects.toThrow(
+        AqualinkUnauthorizedError,
+      );
+    });
+
+    test("re-authenticates with stored credentials", async () => {
+      // Initial login
+      fetchMock.mockResolvedValueOnce(
+        new Response(JSON.stringify(MOCK_LOGIN_RESPONSE), { status: 200 }),
+      );
+      await client.login("test@example.com", "password");
+
+      // Refresh returns new session
+      const refreshResponse = {
+        ...MOCK_LOGIN_RESPONSE,
+        session_id: "new_session_789",
+      };
+      fetchMock.mockResolvedValueOnce(
+        new Response(JSON.stringify(refreshResponse), { status: 200 }),
+      );
+      await client.refreshLogin();
+
+      expect(client.getCredentials().sessionId).toBe("new_session_789");
+    });
+
+    test("coalesces concurrent refresh calls into one login", async () => {
+      // Initial login
+      fetchMock.mockResolvedValueOnce(
+        new Response(JSON.stringify(MOCK_LOGIN_RESPONSE), { status: 200 }),
+      );
+      await client.login("test@example.com", "password");
+
+      // Only one refresh response needed — concurrent calls share it
+      const refreshResponse = {
+        ...MOCK_LOGIN_RESPONSE,
+        session_id: "shared_session",
+      };
+      fetchMock.mockResolvedValueOnce(
+        new Response(JSON.stringify(refreshResponse), { status: 200 }),
+      );
+
+      // Fire two refreshes concurrently
+      const [r1, r2] = await Promise.all([
+        client.refreshLogin(),
+        client.refreshLogin(),
+      ]);
+
+      // Only one login fetch should have been made (2 total: initial + refresh)
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(client.getCredentials().sessionId).toBe("shared_session");
     });
   });
 });

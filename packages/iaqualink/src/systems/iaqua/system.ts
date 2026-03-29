@@ -3,6 +3,7 @@ import { IAQUA_SESSION_URL, HTTP_HEADERS } from "../../constants.ts";
 import {
   AqualinkServiceError,
   AqualinkSystemOfflineError,
+  AqualinkUnauthorizedError,
 } from "../../errors.ts";
 import type {
   IaquaHomeWrappedResponse,
@@ -28,6 +29,31 @@ export class IaquaSystem extends AqualinkSystem {
     command: string,
     extraParams?: Record<string, string>,
   ): Promise<unknown> {
+    const response = await this.executeCommand(command, extraParams);
+
+    if (response.status === 401) {
+      await this.client.refreshLogin();
+      const retry = await this.executeCommand(command, extraParams);
+      if (!retry.ok) {
+        throw new AqualinkUnauthorizedError("iAqua session expired and re-login failed");
+      }
+      return retry.json();
+    }
+
+    if (!response.ok) {
+      throw new AqualinkServiceError(
+        `iAqua command ${command} failed: ${response.status}`,
+        response.status,
+      );
+    }
+
+    return response.json();
+  }
+
+  private async executeCommand(
+    command: string,
+    extraParams?: Record<string, string>,
+  ): Promise<Response> {
     const creds = this.client.getCredentials();
     const url = new URL(IAQUA_SESSION_URL);
     url.searchParams.set("actionID", "command");
@@ -41,19 +67,7 @@ export class IaquaSystem extends AqualinkSystem {
       }
     }
 
-    const response = await fetch(url, { headers: HTTP_HEADERS });
-
-    if (!response.ok) {
-      if (response.status === 401) {
-        throw new AqualinkServiceError("Session expired", 401);
-      }
-      throw new AqualinkServiceError(
-        `iAqua command ${command} failed: ${response.status}`,
-        response.status,
-      );
-    }
-
-    return response.json();
+    return fetch(url, { headers: HTTP_HEADERS });
   }
 
   private parseHomeResponse(data: IaquaHomeResponse): void {
@@ -92,11 +106,13 @@ export class IaquaSystem extends AqualinkSystem {
 
   // --- Command helpers for device control ---
 
-  async setSwitch(name: string, state: "1" | "0"): Promise<void> {
-    const command = name.startsWith("aux_") ? "set_aux" : `set_${name}`;
-    await this.sendCommand(command, {
-      [`${name}`]: state,
-    });
+  async setSwitch(name: string): Promise<void> {
+    if (name.startsWith("aux_")) {
+      const auxNum = name.replace("aux_", "");
+      await this.sendCommand(`set_aux_${auxNum}`);
+    } else {
+      await this.sendCommand(`set_${name}`);
+    }
   }
 
   async setTemps(
@@ -119,13 +135,8 @@ export class IaquaSystem extends AqualinkSystem {
     });
   }
 
-  async setHeater(
-    heaterName: string,
-    state: "1" | "0",
-  ): Promise<void> {
-    await this.sendCommand(`set_${heaterName}`, {
-      [heaterName]: state,
-    });
+  async setHeater(heaterName: string): Promise<void> {
+    await this.sendCommand(`set_${heaterName}`);
   }
 }
 

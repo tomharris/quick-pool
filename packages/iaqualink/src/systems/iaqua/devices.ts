@@ -13,21 +13,29 @@ export class IaquaSensor extends AqualinkSensor {}
 
 export class IaquaSwitch extends AqualinkSwitch {
   async turnOn(): Promise<void> {
-    await (this.system as IaquaSystem).setSwitch(this.name, "1");
+    if (!this.isOn) {
+      await (this.system as IaquaSystem).setSwitch(this.name);
+    }
   }
 
   async turnOff(): Promise<void> {
-    await (this.system as IaquaSystem).setSwitch(this.name, "0");
+    if (this.isOn) {
+      await (this.system as IaquaSystem).setSwitch(this.name);
+    }
   }
 }
 
 export class IaquaThermostat extends AqualinkThermostat {
   async turnOn(): Promise<void> {
-    await (this.system as IaquaSystem).setHeater(this.name, "1");
+    if (!this.isOn) {
+      await (this.system as IaquaSystem).setHeater(this.name);
+    }
   }
 
   async turnOff(): Promise<void> {
-    await (this.system as IaquaSystem).setHeater(this.name, "0");
+    if (this.isOn) {
+      await (this.system as IaquaSystem).setHeater(this.name);
+    }
   }
 
   async setTemperature(temp: number): Promise<void> {
@@ -47,19 +55,19 @@ export class IaquaThermostat extends AqualinkThermostat {
 
 export class IaquaLightSwitch extends AqualinkLight {
   async turnOn(): Promise<void> {
-    await (this.system as IaquaSystem).setSwitch(this.name, "1");
+    if (!this.isOn) {
+      await (this.system as IaquaSystem).setSwitch(this.name);
+    }
   }
 
   async turnOff(): Promise<void> {
-    await (this.system as IaquaSystem).setSwitch(this.name, "0");
+    if (this.isOn) {
+      await (this.system as IaquaSystem).setSwitch(this.name);
+    }
   }
 
   async toggle(): Promise<void> {
-    if (this.isOn) {
-      await this.turnOff();
-    } else {
-      await this.turnOn();
-    }
+    await (this.system as IaquaSystem).setSwitch(this.name);
   }
 }
 

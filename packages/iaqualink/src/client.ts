@@ -17,12 +17,17 @@ import { AqualinkSystem } from "./system.ts";
 
 export class AqualinkClient {
   private credentials: AqualinkCredentials | null = null;
+  private email: string | null = null;
+  private password: string | null = null;
+  private refreshPromise: Promise<void> | null = null;
 
   get isLoggedIn(): boolean {
     return this.credentials !== null;
   }
 
   async login(email: string, password: string): Promise<void> {
+    this.email = email;
+    this.password = password;
     const response = await fetch(AQUALINK_LOGIN_URL, {
       method: "POST",
       headers: HTTP_HEADERS,
@@ -122,14 +127,21 @@ export class AqualinkClient {
     return systems;
   }
 
-  /** Re-authenticate and return fresh credentials. Used by ExoSystem on 401. */
-  async refreshLogin(): Promise<void> {
-    if (!this.credentials) {
-      throw new AqualinkUnauthorizedError("No credentials to refresh");
+  /** Re-authenticate using stored credentials. Called automatically on 401.
+   *  Concurrent calls are coalesced into a single login request. */
+  refreshLogin(): Promise<void> {
+    if (!this.email || !this.password) {
+      return Promise.reject(
+        new AqualinkUnauthorizedError("No stored credentials to refresh"),
+      );
     }
-    // Re-login is the only refresh mechanism — the login endpoint
-    // returns fresh tokens each time.
-    // Caller must have stored email/password or handle this upstream.
+    if (this.refreshPromise) {
+      return this.refreshPromise;
+    }
+    this.refreshPromise = this.login(this.email, this.password).finally(() => {
+      this.refreshPromise = null;
+    });
+    return this.refreshPromise;
   }
 
   getCredentials(): AqualinkCredentials {

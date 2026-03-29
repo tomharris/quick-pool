@@ -86,6 +86,7 @@ export const useDevicesStore = create<DevicesState>((set, get) => ({
     const device = system.devices.get(deviceName);
     if (!device || !(device instanceof AqualinkSwitch)) return;
 
+    set({ error: null, isAuthError: false });
     try {
       if (device.isOn) {
         await device.turnOff();
