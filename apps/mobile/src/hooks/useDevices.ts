@@ -6,6 +6,7 @@ import {
   AqualinkSwitch,
   AqualinkThermostat,
   AqualinkLight,
+  IaquaOneTouch,
 } from "@quick-pool/iaqualink";
 
 const POLL_INTERVAL_MS = 30_000;
@@ -58,6 +59,7 @@ export function useGroupedDevices() {
 
   const sensors: AqualinkDevice[] = [];
   const pumpsAndHeaters: AqualinkDevice[] = [];
+  const scenes: AqualinkDevice[] = [];
   const switches: AqualinkDevice[] = [];
   const thermostats: AqualinkDevice[] = [];
   const lights: AqualinkDevice[] = [];
@@ -66,7 +68,9 @@ export function useGroupedDevices() {
     // Hide unconfigured aux devices (no label set in iAqualink controller)
     if (device.name.startsWith("aux_") && !device.hasCustomLabel) continue;
 
-    if (device instanceof AqualinkThermostat) {
+    if (device instanceof IaquaOneTouch) {
+      scenes.push(device);
+    } else if (device instanceof AqualinkThermostat) {
       thermostats.push(device);
     } else if (device instanceof AqualinkLight) {
       lights.push(device);
@@ -79,5 +83,5 @@ export function useGroupedDevices() {
     }
   }
 
-  return { sensors, pumpsAndHeaters, switches, thermostats, lights };
+  return { sensors, pumpsAndHeaters, scenes, switches, thermostats, lights };
 }

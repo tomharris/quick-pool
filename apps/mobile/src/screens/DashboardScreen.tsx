@@ -20,6 +20,7 @@ import { useAuthStore } from "../store/auth";
 import { useDevicePolling, useGroupedDevices } from "../hooks/useDevices";
 import { TemperatureDisplay } from "../components/TemperatureDisplay";
 import { EquipmentToggles } from "../components/EquipmentToggles";
+import { SceneToggles } from "../components/SceneToggles";
 import { DeviceTile } from "../components/DeviceTile";
 import type { RootStackParamList } from "../navigation";
 
@@ -37,7 +38,7 @@ export function DashboardScreen({ navigation }: Props) {
   const systems = useDevicesStore((s) => s.systems);
   const activeSerial = useDevicesStore((s) => s.activeSystemSerial);
 
-  const { sensors, pumpsAndHeaters, switches, thermostats, lights } =
+  const { sensors, pumpsAndHeaters, scenes, switches, thermostats, lights } =
     useGroupedDevices();
   const controllableDevices = [...thermostats, ...switches, ...lights];
 
@@ -86,6 +87,10 @@ export function DashboardScreen({ navigation }: Props) {
             <TemperatureDisplay sensors={sensors} tempUnit={tempUnit} />
             <EquipmentToggles
               devices={pumpsAndHeaters}
+              onToggle={handleDevicePress}
+            />
+            <SceneToggles
+              devices={scenes}
               onToggle={handleDevicePress}
             />
             {error && (
