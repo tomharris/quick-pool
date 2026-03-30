@@ -362,4 +362,18 @@ describe("IaquaSystem", () => {
     expect(party).toBeDefined();
     expect(party!.label).toBe("Party");
   });
+
+  test("sends set_onetouch command with correct URL", async () => {
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify({ status: "ok" }), { status: 200 }),
+    );
+
+    await system.setOneTouch("onetouch_3");
+
+    const [url] = fetchMock.mock.calls[0];
+    const parsed = new URL(url);
+    expect(parsed.searchParams.get("command")).toBe("set_onetouch_3");
+    expect(parsed.searchParams.get("serial")).toBe("POOL001");
+    expect(parsed.searchParams.get("sessionID")).toBe("session456");
+  });
 });
